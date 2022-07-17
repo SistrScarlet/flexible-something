@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[40,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "flexibleguns2"
+version = "${version}"
+displayName = "FlexibleGuns2"
+authors = "sistr"
+description = "jsonファイルで銃を追加できるModです。"
+#logoFile = ""
+
+[[dependencies.flexibleguns2]]
+modId = "forge"
+mandatory = true
+versionRange = "[40,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.flexibleguns2]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18.2,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.flexibleguns2]]
+modId = "architectury"
+mandatory = true
+versionRange = "[4.5.76,)"
+ordering = "AFTER"
+side = "BOTH"
