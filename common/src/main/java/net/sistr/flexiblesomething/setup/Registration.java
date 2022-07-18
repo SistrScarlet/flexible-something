@@ -7,6 +7,7 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
+import net.sistr.flexiblesomething.entity.BotEntity;
 import net.sistr.flexiblesomething.entity.BulletEntity;
 import net.sistr.flexiblesomething.item.gun.GunItem;
 
@@ -28,4 +29,8 @@ public class Registration {
             EntityType.Builder.<BulletEntity>create(BulletEntity::new, SpawnGroup.MISC)
                     .setDimensions(0.5f, 0.5f)
                     .build("basic_bullet"));
+    public static final RegistrySupplier<EntityType<BotEntity>> BOT_ENTITY = ENTITIES.register("bot", () ->
+            EntityType.Builder.<BotEntity>create(BotEntity::new, SpawnGroup.MONSTER)
+                    .setDimensions(0.6f, 1.8f)
+                    .build("bot"));
 }

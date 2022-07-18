@@ -3,8 +3,10 @@ package net.sistr.flexiblesomething.setup;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.Streams;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import net.minecraft.util.Identifier;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
+import net.sistr.flexiblesomething.entity.BotEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.SimpleItem;
 import net.sistr.flexiblesomething.item.gun.GunItem;
@@ -38,6 +40,8 @@ public class ModSetup {
         } catch (Exception ignore) {
 
         }
+
+        EntityAttributeRegistry.register(Registration.BOT_ENTITY, BotEntity::createBotAttribute);
     }
 
 }
