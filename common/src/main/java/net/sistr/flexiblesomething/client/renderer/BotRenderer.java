@@ -6,7 +6,7 @@ import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.util.Identifier;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
-import net.sistr.flexiblesomething.entity.BotEntity;
+import net.sistr.flexiblesomething.entity.mob.BotEntity;
 
 public class BotRenderer extends BipedEntityRenderer<BotEntity, BipedEntityModel<BotEntity>> {
     private static final Identifier TEXTURE = new Identifier(FlexibleSomethingMod.MOD_ID, "textures/entity/bot/bot.png");

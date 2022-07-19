@@ -4,7 +4,7 @@ import net.minecraft.client.model.*;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.sistr.flexiblesomething.entity.BulletEntity;
+import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 
 // Made with Blockbench 4.2.5
 // Exported for Minecraft version 1.17+ for Yarn

@@ -1,4 +1,4 @@
-package net.sistr.flexiblesomething.entity;
+package net.sistr.flexiblesomething.entity.projectile;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -78,29 +78,25 @@ public class BulletEntity extends ProjectileEntity {
             this.extinguish();
         }
         Vec3d vec3d3 = this.getPos();
-        HitResult hitResult = this.world.raycast(new RaycastContext(vec3d3, vec3d2 = vec3d3.add(vec3d), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, this));
+        HitResult hitResult = this.world.raycast(new RaycastContext(vec3d3, vec3d2 = vec3d3.add(vec3d),
+                RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, this));
         if (hitResult.getType() != HitResult.Type.MISS) {
             vec3d2 = hitResult.getPos();
         }
-        while (!this.isRemoved()) {
-            EntityHitResult entityHitResult = this.getEntityCollision(vec3d3, vec3d2);
-            if (entityHitResult != null) {
-                hitResult = entityHitResult;
+        EntityHitResult entityHitResult = this.getEntityCollision(vec3d3, vec3d2);
+        if (entityHitResult != null) {
+            hitResult = entityHitResult;
+        }
+        if (hitResult.getType() == HitResult.Type.ENTITY) {
+            Entity entity = ((EntityHitResult) hitResult).getEntity();
+            Entity entity2 = this.getOwner();
+            if (entity instanceof PlayerEntity && entity2 instanceof PlayerEntity && !((PlayerEntity) entity2).shouldDamagePlayer((PlayerEntity) entity)) {
+                hitResult = null;
             }
-            if (hitResult != null && hitResult.getType() == HitResult.Type.ENTITY) {
-                Entity entity = ((EntityHitResult) hitResult).getEntity();
-                Entity entity2 = this.getOwner();
-                if (entity instanceof PlayerEntity && entity2 instanceof PlayerEntity && !((PlayerEntity) entity2).shouldDamagePlayer((PlayerEntity) entity)) {
-                    hitResult = null;
-                    entityHitResult = null;
-                }
-            }
-            if (hitResult != null && !bl) {
-                this.onCollision(hitResult);
-                this.velocityDirty = true;
-            }
-            if (entityHitResult == null /*|| this.getPierceLevel() <= 0*/) break;
-            hitResult = null;
+        }
+        if (hitResult != null && !bl) {
+            this.onCollision(hitResult);
+            this.velocityDirty = true;
         }
         vec3d = this.getVelocity();
         double e = vec3d.x;
@@ -145,8 +141,6 @@ public class BulletEntity extends ProjectileEntity {
         Entity entity2;
         super.onEntityHit(entityHitResult);
         Entity entity = entityHitResult.getEntity();
-        float f = (float) this.getVelocity().length();
-        int i = MathHelper.ceil(MathHelper.clamp((double) f * this.damage, 0.0, 2.147483647E9));
         if ((entity2 = this.getOwner()) == null) {
             damageSource = bullet(this, this);
         } else {
@@ -160,7 +154,8 @@ public class BulletEntity extends ProjectileEntity {
         if (this.isOnFire() && !bl) {
             entity.setOnFireFor(5);
         }
-        if (entity.damage(damageSource, i)) {
+        entity.timeUntilRegen = 0;
+        if (entity.damage(damageSource, this.damage)) {
             if (bl) {
                 return;
             }

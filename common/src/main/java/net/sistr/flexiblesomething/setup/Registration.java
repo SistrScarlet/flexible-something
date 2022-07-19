@@ -7,8 +7,8 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
-import net.sistr.flexiblesomething.entity.BotEntity;
-import net.sistr.flexiblesomething.entity.BulletEntity;
+import net.sistr.flexiblesomething.entity.mob.BotEntity;
+import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.gun.GunItem;
 
 public class Registration {

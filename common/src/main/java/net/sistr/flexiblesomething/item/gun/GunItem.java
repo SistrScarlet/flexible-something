@@ -11,13 +11,14 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import net.sistr.flexiblesomething.entity.BulletEntity;
+import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
+import net.sistr.flexiblesomething.item.Shootable;
 
 import javax.annotation.Nullable;
 
 //機能を細かく分ける試みはあまりにも複雑すぎて無理となった
-public class GunItem extends Item {
+public class GunItem extends Item implements Shootable {
     public final BasicGunSettings basicGunSettings;
     @Nullable
     public final ReloadSettings reloadSettings;
@@ -34,12 +35,94 @@ public class GunItem extends Item {
                 arg.orNull(ReloadSettings.class));
     }
 
+    //API
+
+    @Override
+    public void tryShoot(World world, ItemStack stack, @Nullable LivingEntity user) {
+        if (!world.isClient) {
+            var gunState = getNBT(stack);
+            setShootInput(gunState, 1);
+        }
+    }
+
+    @Override
+    public void tryReload(World world, ItemStack stack, @Nullable LivingEntity user) {
+        if (!world.isClient && reloadSettings != null) {
+            var gunState = getNBT(stack);
+            int reloadTime = getReloadTime(gunState);
+            if (reloadTime <= 0) {
+                setReloadTime(reloadSettings, gunState, reloadSettings.reloadAmount());
+            }
+        }
+    }
+
+    @Override
+    public void tickShootable(World world, ItemStack stack, @Nullable LivingEntity user) {
+        if (world.isClient) {
+            return;
+        }
+
+        var gunState = getNBT(stack);
+
+        Hand heldHand = Hand.MAIN_HAND;
+        if (user != null) {
+            if (user.getMainHandStack() == stack) {
+            } else if (user.getOffHandStack() == stack) {
+                heldHand = Hand.OFF_HAND;
+            } else {
+                heldHand = null;
+            }
+        }
+
+        decreaseFireDelay(gunState);
+
+        if (reloadSettings != null && isReloading(gunState)) {
+            if (heldHand == null) {
+                setReloadTime(reloadSettings, gunState, 0);
+            } else {
+                int reloadTime = getReloadTime(gunState);
+                if (reloadTime == 1) {
+                    int reloadAmount = reloadSettings.reloadAmount;
+                    if (reloadAmount <= 0) {
+                        reloadAmount = reloadSettings.ammoAmount;
+                    }
+                    setAmmoAmount(reloadSettings, gunState, reloadAmount);
+                }
+                decreaseReloadTime(reloadSettings, gunState);
+                playReloadSound(world, user, reloadSettings.length - reloadTime + 1);
+            }
+        }
+
+        if (isInputShoot(gunState)) {
+            decreaseShootInputTime(gunState);
+            if (heldHand == null) {
+                setShootInput(gunState, 0);
+            } else {
+                if (isReadyShoot(gunState)) {
+                    setFireDelay(gunState, this.basicGunSettings.fireInterval);
+                    if (reloadSettings != null) {
+                        if (isReloading(gunState)) {
+                            setReloadTime(reloadSettings, gunState, 0);
+                        }
+                        setAmmoAmount(reloadSettings, gunState, getAmmoAmount(gunState) - 1);
+                    }
+                    shoot(world, user);
+                }
+                if (reloadSettings != null && isNoAmmo(gunState) && !isReloading(gunState)) {
+                    setReloadTime(reloadSettings, gunState, reloadSettings.length);
+                    playReloadSound(world, user, 0);
+                }
+            }
+
+        }
+    }
+
     //use()は長押しだと4tick間隔でしか実行されない
     //そのため、一瞬クリックしただけでも5tickぶん長押ししたことにする
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        ItemStack stack = user.getStackInHand(hand);
         if (!world.isClient) {
-            ItemStack stack = user.getStackInHand(hand);
             var gunState = getNBT(stack);
             setShootInput(gunState, 5);
         }
@@ -143,61 +226,8 @@ public class GunItem extends Item {
 
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (world.isClient) {
-            return;
-        }
-
-        var gunState = getNBT(stack);
-
-        Hand heldHand = selected ? Hand.MAIN_HAND : null;
         if (entity instanceof LivingEntity) {
-            if (((LivingEntity) entity).getMainHandStack() == stack) {
-                heldHand = Hand.MAIN_HAND;
-            } else if (((LivingEntity) entity).getOffHandStack() == stack) {
-                heldHand = Hand.OFF_HAND;
-            }
-        }
-
-        decreaseFireDelay(gunState);
-        decreaseShootInputTime(gunState);
-
-        if (reloadSettings != null && isReloading(gunState)) {
-            if (heldHand == null) {
-                setReloadTime(reloadSettings, gunState, 0);
-            } else {
-                int reloadTime = getReloadTime(gunState);
-                if (reloadTime == 1) {
-                    int reloadAmount = reloadSettings.reloadAmount;
-                    if (reloadAmount <= 0) {
-                        reloadAmount = reloadSettings.ammoAmount;
-                    }
-                    setAmmoAmount(reloadSettings, gunState, reloadAmount);
-                }
-                decreaseReloadTime(reloadSettings, gunState);
-                playReloadSound(world, entity, reloadSettings.length - reloadTime + 1);
-            }
-        }
-
-        if (isInputShoot(gunState)) {
-            if (heldHand == null) {
-                setShootInput(gunState, 0);
-            } else {
-                if (isReadyShoot(gunState)) {
-                    setFireDelay(gunState, this.basicGunSettings.fireInterval);
-                    if (reloadSettings != null) {
-                        if (isReloading(gunState)) {
-                            setReloadTime(reloadSettings, gunState, 0);
-                        }
-                        setAmmoAmount(reloadSettings, gunState, getAmmoAmount(gunState) - 1);
-                    }
-                    shoot(world, entity);
-                }
-                if (reloadSettings != null && isNoAmmo(gunState) && !isReloading(gunState)) {
-                    setReloadTime(reloadSettings, gunState, reloadSettings.length);
-                    playReloadSound(world, entity, 0);
-                }
-            }
-
+            tickShootable(world, stack, (LivingEntity) entity);
         }
     }
 

@@ -6,7 +6,7 @@ import dev.architectury.platform.Platform;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import net.minecraft.util.Identifier;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
-import net.sistr.flexiblesomething.entity.BotEntity;
+import net.sistr.flexiblesomething.entity.mob.BotEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.SimpleItem;
 import net.sistr.flexiblesomething.item.gun.GunItem;
