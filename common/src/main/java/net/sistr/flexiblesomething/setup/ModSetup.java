@@ -2,9 +2,15 @@ package net.sistr.flexiblesomething.setup;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.Streams;
+import dev.architectury.hooks.level.biome.BiomeHooks;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.level.biome.BiomeModifications;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.SpawnSettings;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
 import net.sistr.flexiblesomething.entity.mob.BotEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
@@ -42,6 +48,20 @@ public class ModSetup {
         }
 
         EntityAttributeRegistry.register(Registration.BOT_ENTITY, BotEntity::createBotAttribute);
+        BiomeModifications.addProperties(ctx -> {
+            var prop = ctx.getProperties();
+            var category = prop.getCategory();
+            if (category == Biome.Category.THEEND || category == Biome.Category.NETHER || category == Biome.Category.NONE) {
+                return false;
+            }
+            if (prop.getSpawnProperties().getSpawners().get(SpawnGroup.MONSTER).stream().map(entry -> entry.type).anyMatch(type -> type == EntityType.ZOMBIE)) {
+                return true;
+            }
+            return false;
+        }, (ctx, mut) -> {
+            var spawn = mut.getSpawnProperties();
+            spawn.addSpawn(SpawnGroup.MONSTER, new SpawnSettings.SpawnEntry(Registration.BOT_ENTITY.get(), 3, 1, 4));
+        });
     }
 
 }
