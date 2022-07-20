@@ -8,10 +8,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
+import net.sistr.flexiblesomething.client.screen.SkillTreeScreen;
+import net.sistr.flexiblesomething.entity.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.Shootable;
 
@@ -121,8 +124,8 @@ public class GunItem extends Item implements Shootable {
     //そのため、一瞬クリックしただけでも5tickぶん長押ししたことにする
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
         if (!world.isClient) {
+            ItemStack stack = user.getStackInHand(hand);
             var gunState = getNBT(stack);
             setShootInput(gunState, 5);
         }
