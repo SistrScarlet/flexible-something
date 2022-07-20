@@ -1,5 +1,6 @@
 package net.sistr.flexiblesomething.item.gun;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -8,9 +9,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+import net.sistr.flexiblesomething.client.screen.SkillTreeScreen;
 import net.sistr.flexiblesomething.entity.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 
@@ -144,6 +147,9 @@ public class GunItem extends Item {
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         if (world.isClient) {
+            if (entity instanceof PlayerEntity && entity.isSneaking()) {
+                MinecraftClient.getInstance().setScreen(new SkillTreeScreen(Text.of("")));
+            }
             return;
         }
 
