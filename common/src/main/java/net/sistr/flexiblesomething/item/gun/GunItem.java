@@ -1,5 +1,6 @@
 package net.sistr.flexiblesomething.item.gun;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,9 +13,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.client.screen.SkillTreeScreen;
-import net.sistr.flexiblesomething.entity.BulletEntity;
+import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.Shootable;
 
@@ -62,6 +62,9 @@ public class GunItem extends Item implements Shootable {
     @Override
     public void tickShootable(World world, ItemStack stack, @Nullable LivingEntity user) {
         if (world.isClient) {
+            if (user instanceof PlayerEntity && user.isSneaking()) {
+                MinecraftClient.getInstance().setScreen(new SkillTreeScreen(Text.of("")));
+            }
             return;
         }
 

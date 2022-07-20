@@ -2,7 +2,6 @@ package net.sistr.flexiblesomething.setup;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.Streams;
-import dev.architectury.hooks.level.biome.BiomeHooks;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.level.biome.BiomeModifications;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
@@ -48,20 +47,29 @@ public class ModSetup {
         }
 
         EntityAttributeRegistry.register(Registration.BOT_ENTITY, BotEntity::createBotAttribute);
-        BiomeModifications.addProperties(ctx -> {
+        /*BiomeModifications.addProperties(ctx -> {
             var prop = ctx.getProperties();
             var category = prop.getCategory();
             if (category == Biome.Category.THEEND || category == Biome.Category.NETHER || category == Biome.Category.NONE) {
                 return false;
             }
-            if (prop.getSpawnProperties().getSpawners().get(SpawnGroup.MONSTER).stream().map(entry -> entry.type).anyMatch(type -> type == EntityType.ZOMBIE)) {
+            var cost = prop.getSpawnProperties().getMobSpawnCosts();
+            if (cost != null && cost.get(EntityType.ZOMBIE) != null) {
                 return true;
             }
+            *//*var spawners = prop.getSpawnProperties().getSpawners();
+            if (spawners == null) {
+                return false;
+            }
+            var map = spawners.get(SpawnGroup.MONSTER);
+            if (map.stream().map(entry -> entry.type).anyMatch(type -> type == EntityType.ZOMBIE)) {
+                return true;
+            }*//*
             return false;
         }, (ctx, mut) -> {
             var spawn = mut.getSpawnProperties();
             spawn.addSpawn(SpawnGroup.MONSTER, new SpawnSettings.SpawnEntry(Registration.BOT_ENTITY.get(), 3, 1, 4));
-        });
+        });*/
     }
 
 }
