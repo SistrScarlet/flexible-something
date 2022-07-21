@@ -1,68 +1,34 @@
 package net.sistr.flexiblesomething.client.screen;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.util.math.MatrixStack;
+import java.util.List;
+import java.util.Map;
 
-public class SkillTreeUI {
-    private final ClientSkillTree skillTree;
-    private final int entryWidth;
-    private final int entryHeight;
-    private final int entryIntervalWidth;
-    private final int entryIntervalHeight;
+public class SkillTreeUI extends AbstractSkillTreeUI {
 
     public SkillTreeUI(ClientSkillTree skillTree, int entryWidth, int entryHeight, int entryIntervalWidth, int entryIntervalHeight) {
-        this.skillTree = skillTree;
-        this.entryWidth = entryWidth;
-        this.entryHeight = entryHeight;
-        this.entryIntervalWidth = entryIntervalWidth;
-        this.entryIntervalHeight = entryIntervalHeight;
+        super(skillTree, entryWidth, entryHeight, entryIntervalWidth, entryIntervalHeight);
     }
 
-    public void render(MatrixStack matrices, TextRenderer textRenderer, int x, int y) {
-        renderRecursion(matrices, textRenderer, x, y, this.skillTree.getRoot());
-    }
-
-    protected void renderRecursion(MatrixStack matrices, TextRenderer textRenderer, int x, int y, ClientSkillTree.Entry entry) {
-        int width = entryWidth + entryIntervalWidth;
-        int height = entryHeight + entryIntervalHeight;
-        entry.children.forEach(child -> {
-            int line = 2;
-            //横棒
-            if (entry.x != child.x) {
-                if (entry.x < child.x) {
-                    DrawableHelper.fill(matrices,
-                            x + entry.x * width + entryWidth,
-                            y + entry.y * height + (entryHeight - line) / 2,
-                            x + child.x * width + (entryWidth + line) / 2,
-                            y + entry.y * height + (entryHeight + line) / 2, 0xFF808080);
-                } else {
-                    DrawableHelper.fill(matrices,
-                            x + child.x * width + (entryWidth - line) / 2,
-                            y + entry.y * height + (entryHeight - line) / 2,
-                            x + entry.x * width,
-                            y + entry.y * height + (entryHeight + line) / 2, 0xFF808080);
-                }
+    @Override
+    protected void calcXYRecursion(int layer, ClientSkillTree.Entry entry,
+                                   List<Integer> layerCounts, Map<ClientSkillTree.Entry, RenderInfo> map) {
+        entry.children.forEach(cEntry -> calcXYRecursion(layer + 1, cEntry, layerCounts, map));
+        //x座標を出すために深さ優先で項目を選んでレイヤーごとにxを加算
+        //レイヤーに加算する数は項目数*2-1
+        //レイヤー+項目数-1がx座標
+        //todo 加算する数は-1のアリナシで変わる、けどもっと詰める設定も欲しい
+        int size = entry.size;
+        int layerCount = layerCounts.get(layer);
+        map.put(entry, new RenderInfo(layerCount + size - 1, layer, entryWidth, entryHeight));
+        layerCounts.set(layer, layerCount + size * 2 - 1);
+        //下位レイヤーは常に現在レイヤー以上でなければならない
+        //下位レイヤーが現在レイヤー未満の場合、現在レイヤーの値に書き換える
+        for (int i = layer; i < (layerCounts.size() - 1); i++) {
+            int count = layerCounts.get(i);
+            if (layerCounts.get(i + 1) < count) {
+                layerCounts.set(i + 1, count);
             }
-            //縦棒
-            DrawableHelper.fill(matrices,
-                    x + child.x * width + (entryWidth - line) / 2,
-                    y + child.y * height,
-                    x + child.x * width + (entryWidth + line) / 2,
-                    y + entry.y * height + (entryHeight - line) / 2, 0xFF808080);
-        });
-
-        DrawableHelper.fill(matrices,
-                x + entry.x * width, y + entry.y * height,
-                x + entry.x * width + entryWidth, y + entry.y * height + entryHeight, 0xFFFFFF00);
-
-        textRenderer.drawWithShadow(matrices, entry.skill.getName(),
-                x + entry.x * width, y + entry.y * height + textRenderer.fontHeight, 0xFFFFFF);
-        if (entry.parent != null) {
-            textRenderer.drawWithShadow(matrices, entry.parent.skill.getName(),
-                    x + entry.x * width, y + entry.y * height, 0xFFFFFF);
         }
-        entry.children.forEach(cEntry -> renderRecursion(matrices, textRenderer, x, y, cEntry));
     }
 
 }

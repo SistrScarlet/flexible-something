@@ -6,8 +6,7 @@ import net.minecraft.text.Text;
 import net.sistr.flexiblesomething.skilltree.SkillTree;
 
 public class SkillTreeScreen extends Screen {
-    private final ClientSkillTree skillTree;
-    private final SkillTreeUI skillTreeUI;
+    private final TreeUI skillTreeUI;
     private int clickAtX;
     private int clickAtY;
     private double deltaX;
@@ -18,8 +17,8 @@ public class SkillTreeScreen extends Screen {
 
     public SkillTreeScreen(Text title) {
         super(title);
-        this.skillTree = new ClientSkillTree(buildTree());
-        this.skillTreeUI = new SkillTreeUI(this.skillTree,
+        ClientSkillTree skillTree = new ClientSkillTree(buildTree());
+        this.skillTreeUI = new SkillTreeUIReverse(skillTree,
                 30, 20, 10, 10);
     }
 
