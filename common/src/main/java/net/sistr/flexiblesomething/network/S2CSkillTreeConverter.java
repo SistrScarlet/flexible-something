@@ -8,27 +8,29 @@ import net.sistr.flexiblesomething.skill.Skill;
 import net.sistr.flexiblesomething.skill.SkillTree;
 import net.sistr.flexiblesomething.skill.UnlockState;
 
+import javax.annotation.Nullable;
+
 public class S2CSkillTreeConverter {
 
     public static void write(SkillTree skillTree, PlayerEntity player, PacketByteBuf buf) {
         var root = skillTree.getRoot();
-        writeSkill(root, player, buf);
+        writeSkill(root, null, player, buf);
         writeSkillTree(root, player, buf);
     }
 
     private static void writeSkillTree(Skill parent, PlayerEntity player, PacketByteBuf buf) {
         int childNum = parent.getChildren().size();
         buf.writeByte(childNum);
-        parent.getChildren().forEach(s -> writeSkill(s, player, buf));
+        parent.getChildren().forEach(s -> writeSkill(s, parent, player, buf));
         parent.getChildren().forEach(s -> writeSkillTree(s, player, buf));
     }
 
-    private static void writeSkill(Skill skill, PlayerEntity player, PacketByteBuf buf) {
+    private static void writeSkill(Skill skill, @Nullable Skill parent, PlayerEntity player, PacketByteBuf buf) {
         buf.writeString(skill.getName());
         UnlockState unlockState;
         if (skill.isUnlocked()) {
             unlockState = UnlockState.UNLOCKED;
-        } else if (skill.canUnlock(player)) {
+        } else if ((parent == null || parent.isUnlocked()) && skill.canUnlock(player)) {
             unlockState = UnlockState.CAN_UNLOCK;
         } else {
             unlockState = UnlockState.LOCKED;

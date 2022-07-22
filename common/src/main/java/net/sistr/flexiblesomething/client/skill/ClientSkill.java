@@ -5,6 +5,7 @@ import org.apache.commons.compress.utils.Lists;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 public class ClientSkill {
     public final String name;
@@ -37,4 +38,18 @@ public class ClientSkill {
     public void setTreeSize(int treeSize) {
         this.treeSize = treeSize;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientSkill that = (ClientSkill) o;
+        return treeSize == that.treeSize && name.equals(that.name) && unlockState == that.unlockState;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
 }

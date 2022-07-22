@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.sistr.flexiblesomething.client.skill.ClientSkill;
 import net.sistr.flexiblesomething.client.skill.ClientSkillTree;
+import net.sistr.flexiblesomething.skill.UnlockState;
 import org.apache.commons.compress.utils.Lists;
 import org.lwjgl.glfw.GLFW;
 
@@ -37,6 +38,31 @@ public abstract class AbstractSkillTreeUI {
         this.entryIntervalWidth = entryIntervalWidth;
         this.entryIntervalHeight = entryIntervalHeight;
         this.map = calcXY(skillTree.getRoot());
+    }
+
+    public void replace(String name, ClientSkill newSkill) {
+        map.keySet().stream()
+                .filter(s -> s.getName().equals(name))
+                .findAny()
+                .ifPresent(old -> {
+                    assert old.parent != null;//rootだったらreplaceしない(できない)
+                    map.put(newSkill, map.get(old));
+                    map.remove(old);
+
+                    newSkill.parent = old.parent;
+                    int index = 0;
+                    for (ClientSkill parentChild : old.parent.children) {
+                        if (parentChild == old) {
+                            break;
+                        }
+                        index++;
+                    }
+                    newSkill.parent.children.set(index, newSkill);
+                    newSkill.children.clear();
+                    newSkill.children.addAll(old.children);
+                    newSkill.children.forEach(child -> child.parent = newSkill);
+                    newSkill.setTreeSize(old.getTreeSize());
+                });
     }
 
     protected Map<ClientSkill, RenderInfo> calcXY(ClientSkill clientSkill) {
@@ -72,13 +98,24 @@ public abstract class AbstractSkillTreeUI {
     }
 
     protected void renderLineRecursion(MatrixStack matrices, ClientSkill clientSkill) {
+        renderLine(matrices, clientSkill);
+        clientSkill.children.forEach(cEntry -> renderLineRecursion(matrices, cEntry));
+    }
+
+    protected void renderLine(MatrixStack matrices, ClientSkill clientSkill) {
         int width = entryWidth + entryIntervalWidth;
         int height = entryHeight + entryIntervalHeight;
+        if (!map.containsKey(clientSkill)) {
+            return;
+        }
         RenderInfo info = map.get(clientSkill);
         //todo 細かい調整要らん？
         clientSkill.children.forEach(child -> {
             int line = 2;
             RenderInfo cInfo = map.get(child);
+            if (!map.containsKey(child)) {
+                return;
+            }
             //横棒
             int y1 = info.y * height + (entryHeight - line) / 2;
             int x1 = cInfo.x * width + (entryWidth + line) / 2;
@@ -106,7 +143,6 @@ public abstract class AbstractSkillTreeUI {
                     x1,
                     y1, 0xFF808080);
         });
-        clientSkill.children.forEach(cEntry -> renderLineRecursion(matrices, cEntry));
     }
 
     protected void renderEntryRecursion(MatrixStack matrices, TextRenderer textRenderer, ClientSkill clientSkill) {
@@ -117,14 +153,32 @@ public abstract class AbstractSkillTreeUI {
     protected void renderEntry(MatrixStack matrices, TextRenderer textRenderer, ClientSkill clientSkill) {
         int width = entryWidth + entryIntervalWidth;
         int height = entryHeight + entryIntervalHeight;
+
+        if (!map.containsKey(clientSkill)) {
+            return;
+        }
         RenderInfo info = map.get(clientSkill);
 
         boolean select = this.selectEntry == clientSkill;
+        UnlockState unlockState = clientSkill.getUnlockState();
+        int color;
+        if (select) {
+            color = 0xFF8080FF;//青
+        } else {
+            if (unlockState == UnlockState.UNLOCKED) {
+                color = 0xFF80FF80;//緑
+            } else if (unlockState == UnlockState.CAN_UNLOCK
+                    && (clientSkill.parent == null
+                    || clientSkill.parent.getUnlockState() == UnlockState.UNLOCKED)) {
+                color = 0xFFFFFF80;//黄
+            } else {
+                color = 0xFF808080;//灰
+            }
+        }
 
         DrawableHelper.fill(matrices,
                 info.x * width, info.y * height,
-                info.x * width + info.width, info.y * height + info.height,
-                select ? 0xFF0000FF : 0xFFFFFF00);
+                info.x * width + info.width, info.y * height + info.height, color);
 
         textRenderer.drawWithShadow(matrices, clientSkill.getName(),
                 info.x * width, info.y * height + textRenderer.fontHeight, 0xFFFFFF);
@@ -141,6 +195,7 @@ public abstract class AbstractSkillTreeUI {
         double centerX = this.parent.width / 2f;
         double centerY = this.parent.height / 2f;
         boolean result = map.entrySet().stream().anyMatch(e -> {
+            var skill = e.getKey();
             var info = e.getValue();
             double width = entryWidth + entryIntervalWidth;
             double height = entryHeight + entryIntervalHeight;
@@ -150,15 +205,16 @@ public abstract class AbstractSkillTreeUI {
             double y2 = y1 + info.height * scale;
             if (x1 <= mouseX && mouseX < x2
                     && y1 <= mouseY && mouseY < y2) {
-                if (this.selectEntry == e.getKey()) {
+                if (this.selectEntry == skill) {
                     //選択状態かつダブルクリックなら実行
                     if (0 < this.clickTimer) {
-                        execEntry(this.selectEntry);
+                        execEntry(skill);
+                        this.clickTimer = 0;
                     }
                 } else {
-                    this.selectEntry = e.getKey();
+                    this.selectEntry = skill;
+                    this.clickTimer = 10;
                 }
-                this.clickTimer = 10;
                 return true;
             }
             return false;
@@ -170,7 +226,12 @@ public abstract class AbstractSkillTreeUI {
     }
 
     protected void execEntry(ClientSkill clientSkill) {
-
+        if (clientSkill.getUnlockState() == UnlockState.CAN_UNLOCK
+                && (clientSkill.parent == null
+                || clientSkill.parent.getUnlockState() == UnlockState.UNLOCKED)) {
+            clientSkill.setUnlockState(UnlockState.UNLOCKED);
+            clientSkill.children.forEach(s -> s.setUnlockState(UnlockState.CAN_UNLOCK));
+        }
     }
 
     public void tick() {

@@ -9,8 +9,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class Skill {
-    private final ImmutableList<Skill> children;
     private final String name;
+    private final ImmutableList<Skill> children;
     private final Predicate<PlayerEntity> unlockPredicate;
     private final Consumer<PlayerEntity> unlockConsumer;
     private boolean unlocked;

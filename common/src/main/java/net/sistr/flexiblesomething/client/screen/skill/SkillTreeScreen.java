@@ -4,8 +4,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.sistr.flexiblesomething.client.skill.ClientSkillTree;
-import net.sistr.flexiblesomething.network.S2CSkillTreeConverter;
-import net.sistr.flexiblesomething.skill.SkillTree;
 
 public class SkillTreeScreen extends Screen {
     private final AbstractSkillTreeUI skillTreeUI;
