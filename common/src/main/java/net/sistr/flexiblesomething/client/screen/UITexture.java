@@ -6,7 +6,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 
-public class UIComponent {
+public class UITexture {
     private int x;
     private int y;
     private int z;
@@ -18,15 +18,15 @@ public class UIComponent {
     private float u2;
     private float v2;
 
-    public UIComponent(int x, int y, int width, int height,
-                       Identifier texture, int u, int v, int textureWidth, int textureHeight) {
+    public UITexture(int x, int y, int width, int height,
+                     Identifier texture, int u, int v, int textureWidth, int textureHeight) {
         this(x, y, width, height,
                 (float) u / textureWidth, (float) v / textureHeight,
                 (float) (u + width) / textureWidth, (float) (v + height) / textureHeight, texture);
     }
 
-    public UIComponent(int x, int y, int width, int height,
-                       float u1, float v1, float u2, float v2, Identifier texture) {
+    public UITexture(int x, int y, int width, int height,
+                     float u1, float v1, float u2, float v2, Identifier texture) {
         this.x = x;
         this.y = y;
         this.texture = texture;

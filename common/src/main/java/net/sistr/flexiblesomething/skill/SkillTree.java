@@ -1,4 +1,4 @@
-package net.sistr.flexiblesomething.skilltree;
+package net.sistr.flexiblesomething.skill;
 
 public class SkillTree {
     private final Skill root;

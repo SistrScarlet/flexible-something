@@ -1,4 +1,4 @@
-package net.sistr.flexiblesomething.skilltree;
+package net.sistr.flexiblesomething.skill;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.entity.player.PlayerEntity;
@@ -13,6 +13,7 @@ public class Skill {
     private final String name;
     private final Predicate<PlayerEntity> unlockPredicate;
     private final Consumer<PlayerEntity> unlockConsumer;
+    private boolean unlocked;
 
     public Skill(String name, List<Skill> children, Predicate<PlayerEntity> unlockPredicate, Consumer<PlayerEntity> unlockConsumer) {
         this.name = name;
@@ -43,6 +44,14 @@ public class Skill {
 
     public void unlock(PlayerEntity player) {
         unlockConsumer.accept(player);
+    }
+
+    public boolean isUnlocked() {
+        return unlocked;
+    }
+
+    public void setUnlocked(boolean unlocked) {
+        this.unlocked = unlocked;
     }
 
     public static class Builder {
