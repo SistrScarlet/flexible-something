@@ -6,7 +6,7 @@ import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 
-// Made with Blockbench 4.2.5
+// Made with Blockbench 4.3.0
 // Exported for Minecraft version 1.17+ for Yarn
 // Paste this class into your mod and generate all required imports
 public class BulletEntityModel extends EntityModel<BulletEntity> {
@@ -19,7 +19,11 @@ public class BulletEntityModel extends EntityModel<BulletEntity> {
     public static TexturedModelData getTexturedModelData() {
         ModelData modelData = new ModelData();
         ModelPartData modelPartData = modelData.getRoot();
-        ModelPartData bb_main = modelPartData.addChild("bb_main", ModelPartBuilder.create().uv(0, 0).cuboid(-1.0F, -1.0F, -1.0F, 2.0F, 2.0F, 2.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
+        ModelPartData bb_main = modelPartData.addChild("bb_main", ModelPartBuilder.create()
+                        .uv(0, 0)
+                        .cuboid(-1.0F, -1.25F, -1.5F,
+                                2.0F, 2.0F, 3.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(0.0F, 24.0F, 0.0F));
         return TexturedModelData.of(modelData, 16, 16);
     }
 

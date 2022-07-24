@@ -1,0 +1,6 @@
+{
+    "parent": "flexiblesomething:item/gun_base",
+    "textures": {
+        "layer0": "flexiblesomething:item/punisher"
+    }
+}

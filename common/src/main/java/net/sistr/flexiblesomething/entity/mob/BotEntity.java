@@ -14,6 +14,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
+import net.sistr.flexiblesomething.entity.goal.SimpleShootGoal;
 import net.sistr.flexiblesomething.setup.Registration;
 import org.jetbrains.annotations.Nullable;
 

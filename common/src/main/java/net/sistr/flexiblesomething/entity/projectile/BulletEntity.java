@@ -1,5 +1,6 @@
 package net.sistr.flexiblesomething.entity.projectile;
 
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
+import net.minecraft.network.Packet;
 import net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -27,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BulletEntity extends ProjectileEntity {
     private int decay = 100;
-    private int damage = 6;
+    private int damage = 4;
 
     public BulletEntity(EntityType<? extends BulletEntity> entityType, World world) {
         super(entityType, world);
@@ -244,5 +246,10 @@ public class BulletEntity extends ProjectileEntity {
     @Override
     protected float getEyeHeight(EntityPose pose, EntityDimensions dimensions) {
         return 0.13f;
+    }
+
+    @Override
+    public Packet<?> createSpawnPacket() {
+        return NetworkManager.createAddEntityPacket(this);
     }
 }

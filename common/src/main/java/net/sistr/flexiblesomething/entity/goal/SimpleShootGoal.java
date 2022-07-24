@@ -1,4 +1,4 @@
-package net.sistr.flexiblesomething.entity.mob;
+package net.sistr.flexiblesomething.entity.goal;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
