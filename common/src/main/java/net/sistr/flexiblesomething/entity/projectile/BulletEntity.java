@@ -13,6 +13,7 @@ import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.network.Packet;
 import net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket;
+import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
@@ -22,6 +23,7 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.setup.Registration;
@@ -129,8 +131,27 @@ public class BulletEntity extends ProjectileEntity {
             Vec3d vec3d4 = this.getVelocity();
             this.setVelocity(vec3d4.x, vec3d4.y - getGravity(), vec3d4.z);
         }
+
+        showParticle(this.getPos(), new Vec3d(h, j, k), 0.5f);
+
         this.setPosition(h, j, k);
         this.checkBlockCollision();
+    }
+
+    public void showParticle(Vec3d now, Vec3d next, float interval) {
+        Vec3d toVec = next.subtract(now);
+        Vec3d toVecN = toVec.normalize();
+        double length = toVec.length();
+        var loop = 0;
+        while (0 < length - loop * interval) {
+            Vec3d point = now.add(toVecN.multiply(loop * interval));
+            world.addParticle(
+                    new DustParticleEffect(new Vec3f(0.9f, 0.9f, 0.9f), 0.5f),
+                    point.getX(), point.getY(), point.getZ(),
+                    0.0, 0.0, 0.0
+            );
+            loop++;
+        }
     }
 
     public static DamageSource bullet(BulletEntity bullet, @Nullable Entity attacker) {
