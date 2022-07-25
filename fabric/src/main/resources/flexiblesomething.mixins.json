@@ -5,6 +5,7 @@
   "client": [
   ],
   "mixins": [
+    "MixinSpawnEntityPacket"
   ],
   "injectors": {
     "defaultRequire": 1

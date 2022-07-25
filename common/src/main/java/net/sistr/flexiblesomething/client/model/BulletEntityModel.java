@@ -21,9 +21,9 @@ public class BulletEntityModel extends EntityModel<BulletEntity> {
         ModelPartData modelPartData = modelData.getRoot();
         ModelPartData bb_main = modelPartData.addChild("bb_main", ModelPartBuilder.create()
                         .uv(0, 0)
-                        .cuboid(-1.0F, -1.25F, -1.5F,
+                        .cuboid(-1.0F, -2.0F, -1.5F,
                                 2.0F, 2.0F, 3.0F, new Dilation(0.0F)),
-                ModelTransform.pivot(0.0F, 24.0F, 0.0F));
+                ModelTransform.pivot(0.0F, 0.0F, 0.0F));
         return TexturedModelData.of(modelData, 16, 16);
     }
 
