@@ -1,6 +1,5 @@
 package net.sistr.flexiblesomething.item.gun;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -9,19 +8,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import net.sistr.flexiblesomething.client.screen.skill.SkillTreeScreen;
-import net.sistr.flexiblesomething.client.skill.TestTree;
+import net.sistr.flexiblesomething.entity.HasInput;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.Shootable;
 
 import javax.annotation.Nullable;
 
-//機能を細かく分ける試みはあまりにも複雑すぎて無理となった
+//機能を細かく分ける試みは、あまりにも複雑すぎて無理となった
 public class GunItem extends Item implements Shootable {
     public final BasicGunSettings basicGunSettings;
     @Nullable
@@ -42,7 +39,7 @@ public class GunItem extends Item implements Shootable {
     //API
 
     @Override
-    public void tryShoot(World world, ItemStack stack, @Nullable LivingEntity user) {
+    public void tryShoot(World world, ItemStack stack, LivingEntity user) {
         if (!world.isClient) {
             var gunState = getNBT(stack);
             setShootInput(gunState, 1);
@@ -50,42 +47,48 @@ public class GunItem extends Item implements Shootable {
     }
 
     @Override
-    public void tryReload(World world, ItemStack stack, @Nullable LivingEntity user) {
+    public void tryReload(World world, ItemStack stack, LivingEntity user) {
         if (!world.isClient && reloadSettings != null) {
             var gunState = getNBT(stack);
+
+            if (reloadSettings.ammoAmount <= getAmmoAmount(gunState)) {
+                return;
+            }
+
             int reloadTime = getReloadTime(gunState);
             if (reloadTime <= 0) {
-                setReloadTime(reloadSettings, gunState, reloadSettings.reloadAmount());
+                setReloadTime(reloadSettings, gunState, reloadSettings.length());
+                playReloadSound(world, user, 0);
             }
         }
     }
 
+    //todo 両手、もしくはオフハンドに持った時の挙動が考慮外
     @Override
-    public void tickShootable(World world, ItemStack stack, @Nullable LivingEntity user) {
+    public void tickShootable(World world, ItemStack stack, LivingEntity user) {
         if (world.isClient) {
-            if (user instanceof PlayerEntity && user.isSneaking()) {
-                MinecraftClient.getInstance().setScreen(
-                        new SkillTreeScreen(Text.of(""), TestTree.conv(TestTree.buildTree())));
-            }
             return;
+        }
+
+        HasInput hasInput = (HasInput) user;
+        if (reloadSettings != null && hasInput.isInput("reload")) {
+            tryReload(world, stack, user);
         }
 
         var gunState = getNBT(stack);
 
         Hand heldHand = Hand.MAIN_HAND;
-        if (user != null) {
-            if (user.getMainHandStack() == stack) {
-            } else if (user.getOffHandStack() == stack) {
-                heldHand = Hand.OFF_HAND;
-            } else {
-                heldHand = null;
-            }
+        if (user.getMainHandStack() == stack) {
+        } else if (user.getOffHandStack() == stack) {
+            heldHand = Hand.OFF_HAND;
+        } else {
+            heldHand = null;
         }
 
         decreaseFireDelay(gunState);
 
         if (reloadSettings != null && isReloading(gunState)) {
-            if (heldHand == null) {
+            if (heldHand == null) {//todo ?
                 setReloadTime(reloadSettings, gunState, 0);
             } else {
                 int reloadTime = getReloadTime(gunState);
@@ -241,6 +244,7 @@ public class GunItem extends Item implements Shootable {
 
     public void shoot(World world, Entity shooter) {
         var bullet = new BulletEntity(shooter, world);
+        bullet.setDamage(this.basicGunSettings.damage);
         bullet.setVelocity(shooter, shooter.getPitch(), shooter.getYaw(), 0.0f,
                 basicGunSettings.velocity, basicGunSettings.inAccuracy);
         world.spawnEntity(bullet);

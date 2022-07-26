@@ -6,7 +6,8 @@
   ],
   "mixins": [
     "MixinEntityTrackerEntry",
-    "MixinEntityType"
+    "MixinEntityType",
+    "MixinLivingEntity"
   ],
   "injectors": {
     "defaultRequire": 1

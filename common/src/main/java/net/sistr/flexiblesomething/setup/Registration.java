@@ -26,7 +26,7 @@ public class Registration {
                     new GunItem.ReloadSettings(30, 60, 0)));
     public static final RegistrySupplier<GunItem> GUN_PUNISHER = ITEMS.register("punisher", () ->
             new GunItem(new Item.Settings(),
-                    new GunItem.BasicGunSettings(1.0f, 5.0f, 3.0f, 4.0f, 1),
+                    new GunItem.BasicGunSettings(1.0f, 4.0f, 3.0f, 4.0f, 1),
                     new GunItem.ReloadSettings(50, 50, 0)));
 
     public static final RegistrySupplier<EntityType<BulletEntity>> BASIC_BULLET = ENTITIES.register("basic_bullet", () ->

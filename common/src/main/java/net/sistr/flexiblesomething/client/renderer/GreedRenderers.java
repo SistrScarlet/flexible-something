@@ -22,7 +22,7 @@ public class GreedRenderers {
                 VertexFormat.DrawMode.QUADS, 256, false, true,
                 RenderLayer.MultiPhaseParameters.builder().shader(ENERGY_SWIRL_SHADER)
                         .texture(new RenderPhase.Texture(texture, false, false))
-                        .texturing(new RenderPhase.OffsetTexturing(MathHelper.cos(deltaAge * 0.002f) % 1.0f, (deltaAge * 0.000025f) % 1.0f))
+                        .texturing(new RenderPhase.OffsetTexturing(MathHelper.cos(deltaAge * 0.005f) % 1.0f, (deltaAge * 0.00005f) % 1.0f))
                         .transparency(NO_TRANSPARENCY).cull(DISABLE_CULLING)
                         .lightmap(ENABLE_LIGHTMAP).overlay(ENABLE_OVERLAY_COLOR)
                         .build(true));

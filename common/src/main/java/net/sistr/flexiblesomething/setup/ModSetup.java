@@ -11,6 +11,7 @@ import net.sistr.flexiblesomething.entity.mob.*;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.SimpleItem;
 import net.sistr.flexiblesomething.item.gun.GunItem;
+import net.sistr.flexiblesomething.network.Networking;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +42,8 @@ public class ModSetup {
         } catch (Exception ignore) {
 
         }
+
+        Networking.init();
 
         EntityAttributeRegistry.register(Registration.BOT_ENTITY, BotEntity::createBotAttribute);
 

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BulletEntity extends ProjectileEntity {
     private int decay = 100;
-    private int damage = 4;
+    private float damage = 4;
 
     public BulletEntity(EntityType<? extends BulletEntity> entityType, World world) {
         super(entityType, world);
@@ -127,10 +127,10 @@ public class BulletEntity extends ProjectileEntity {
             m = this.getDragInWater();
         }
         this.setVelocity(vec3d.multiply(m));
-        if (!this.hasNoGravity() && !bl) {
+        /*if (!this.hasNoGravity() && !bl) {
             Vec3d vec3d4 = this.getVelocity();
             this.setVelocity(vec3d4.x, vec3d4.y - getGravity(), vec3d4.z);
-        }
+        }*/
 
         showParticle(this.getPos(), new Vec3d(h, j, k), 0.5f);
 
@@ -146,7 +146,7 @@ public class BulletEntity extends ProjectileEntity {
         while (0 < length - loop * interval) {
             Vec3d point = now.add(toVecN.multiply(loop * interval));
             world.addParticle(
-                    new DustParticleEffect(new Vec3f(0.9f, 0.9f, 0.9f), 0.5f),
+                    new DustParticleEffect(new Vec3f(0.9f, 0.9f, 0.9f), 0.25f),
                     point.getX(), point.getY(), point.getZ(),
                     0.0, 0.0, 0.0
             );
@@ -246,6 +246,10 @@ public class BulletEntity extends ProjectileEntity {
 
     public float getDragInWater() {
         return 0.9f;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
     }
 
     public void tryDespawn() {

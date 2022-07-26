@@ -8,9 +8,9 @@ import javax.annotation.Nullable;
 
 public interface Shootable {
 
-    void tryShoot(World world, ItemStack stack, @Nullable LivingEntity user);
+    void tryShoot(World world, ItemStack stack, LivingEntity user);
 
-    void tryReload(World world, ItemStack stack, @Nullable LivingEntity user);
+    void tryReload(World world, ItemStack stack, LivingEntity user);
 
-    void tickShootable(World world, ItemStack stack, @Nullable LivingEntity user);
+    void tickShootable(World world, ItemStack stack, LivingEntity user);
 }
