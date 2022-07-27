@@ -6,15 +6,21 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.entity.HasInput;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.Shootable;
+import net.sistr.flexiblesomething.util.SoundData;
+import net.sistr.flexiblesomething.util.SoundHolder;
 
 import javax.annotation.Nullable;
 
@@ -23,6 +29,15 @@ public class GunItem extends Item implements Shootable {
     public final BasicGunSettings basicGunSettings;
     @Nullable
     public final ReloadSettings reloadSettings;
+    private final SoundHolder soundHolder = SoundHolder.Builder.create()
+            .addSound(0, SoundData.of(SoundEvents.ITEM_FLINTANDSTEEL_USE, 1f, 1f))
+            .addSound(2, SoundData.of(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 2f, 1f))
+            .addSound(30, SoundData.of(SoundEvents.ITEM_FLINTANDSTEEL_USE, 1f, 1f))
+            .addSound(31, SoundData.of(SoundEvents.ENTITY_GENERIC_HURT, 0f, 1f))
+            .addSound(32, SoundData.of(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 2f, 1f))
+            .addSound(39, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
+            .addSound(40, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
+            .build();
 
     public GunItem(Settings settings, BasicGunSettings basicGunSettings, @Nullable ReloadSettings reloadSettings) {
         super(settings);
@@ -257,10 +272,21 @@ public class GunItem extends Item implements Shootable {
     }
 
     public void playReloadSound(World world, Entity shooter, int time) {
-        if (time % 20 == 0) {
-            world.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(),
-                    SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.PLAYERS, 2f, 2f);
-        }
+        var sounds = soundHolder.getSound(time);
+        sounds.forEach(sound ->
+                playSoundId((ServerWorld) world, shooter.getX(), shooter.getY(), shooter.getZ(),
+                        sound.getId(), SoundCategory.PLAYERS,
+                        sound.getPitch(), sound.getVolume()));
+    }
+
+    public static void playSoundId(ServerWorld world, double x, double y, double z,
+                                   Identifier soundId, SoundCategory soundCategory,
+                                   float pitch, float volume) {
+        world.getServer().getPlayerManager()
+                .sendToAround(null, x, y, z,
+                        volume > 1.0f ? 16.0f * volume : 16.0,
+                        world.getRegistryKey(),
+                        new PlaySoundIdS2CPacket(soundId, soundCategory, new Vec3d(x, y, z), pitch, volume));
     }
 
     public record BasicGunSettings(float fireInterval, float inAccuracy, float velocity, float damage,
