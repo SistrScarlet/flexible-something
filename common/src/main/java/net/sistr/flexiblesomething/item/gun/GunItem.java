@@ -32,10 +32,10 @@ public class GunItem extends Item implements Shootable {
     private final SoundHolder soundHolder = SoundHolder.Builder.create()
             .addSound(0, SoundData.of(SoundEvents.ITEM_FLINTANDSTEEL_USE, 1f, 1f))
             .addSound(2, SoundData.of(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 2f, 1f))
-            .addSound(30, SoundData.of(SoundEvents.ITEM_FLINTANDSTEEL_USE, 1f, 1f))
-            .addSound(31, SoundData.of(SoundEvents.ENTITY_GENERIC_HURT, 0f, 1f))
-            .addSound(32, SoundData.of(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 2f, 1f))
-            .addSound(39, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
+            .addSound(25, SoundData.of(SoundEvents.ITEM_FLINTANDSTEEL_USE, 1f, 1f))
+            .addSound(26, SoundData.of(SoundEvents.ENTITY_GENERIC_HURT, 0f, 1f))
+            .addSound(27, SoundData.of(SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 2f, 1f))
+            .addSound(38, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
             .addSound(40, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
             .build();
 
@@ -286,7 +286,7 @@ public class GunItem extends Item implements Shootable {
                 .sendToAround(null, x, y, z,
                         volume > 1.0f ? 16.0f * volume : 16.0,
                         world.getRegistryKey(),
-                        new PlaySoundIdS2CPacket(soundId, soundCategory, new Vec3d(x, y, z), pitch, volume));
+                        new PlaySoundIdS2CPacket(soundId, soundCategory, new Vec3d(x, y, z), volume, pitch));
     }
 
     public record BasicGunSettings(float fireInterval, float inAccuracy, float velocity, float damage,
