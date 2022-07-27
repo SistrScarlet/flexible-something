@@ -20,6 +20,8 @@ public class ClientSetup {
         EntityRendererRegistry.register(Registration.G_WITCH, GreedWitchEntityRenderer::new);
         EntityRendererRegistry.register(Registration.G_ZOMBIE, GreedZombieEntityRenderer::new);
 
+        EntityRendererRegistry.register(Registration.GREED_CHUNK_ENTITY, GreedChunkEntityRenderer::new);
+
         FlexibleKeys.init();
     }
 

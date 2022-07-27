@@ -2,23 +2,38 @@ package net.sistr.flexiblesomething.setup;
 
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.Material;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.registry.Registry;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
+import net.sistr.flexiblesomething.block.GreedChunkBlock;
+import net.sistr.flexiblesomething.entity.GreedChunkEntity;
 import net.sistr.flexiblesomething.entity.mob.*;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.gun.GunItem;
 
 public class Registration {
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.BLOCK_KEY);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.ITEM_KEY);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.ENTITY_TYPE_KEY);
 
     public static void init() {
+        BLOCKS.register();
         ITEMS.register();
         ENTITIES.register();
     }
+
+    public static final RegistrySupplier<GreedChunkBlock> GREED_CHUNK_BLOCK = BLOCKS.register("greed_chunk", () ->
+            new GreedChunkBlock(AbstractBlock.Settings.of(Material.MOSS_BLOCK, DyeColor.BLACK)));
+
+    public static final RegistrySupplier<BlockItem> GREED_CHUNK_BLOCK_ITEM = ITEMS.register("greed_chunk", () ->
+            new BlockItem(GREED_CHUNK_BLOCK.get(), new Item.Settings()));
 
     public static final RegistrySupplier<GunItem> TEST_GUN = ITEMS.register("test_gun", () ->
             new GunItem(new Item.Settings(),
@@ -40,6 +55,11 @@ public class Registration {
             EntityType.Builder.<BotEntity>create(BotEntity::new, SpawnGroup.MONSTER)
                     .setDimensions(0.6f, 1.8f)
                     .build("bot"));
+
+    public static final RegistrySupplier<EntityType<GreedChunkEntity>> GREED_CHUNK_ENTITY = ENTITIES.register("greed_chunk", () ->
+            EntityType.Builder.<GreedChunkEntity>create(GreedChunkEntity::new, SpawnGroup.MISC)
+                    .setDimensions(0.5f, 0.5f).maxTrackingRange(8)
+                    .build("greed_zombie"));
 
     public static final RegistrySupplier<EntityType<GreedDrownedEntity>> G_DROWNED = ENTITIES.register("greed_drowned", () ->
             EntityType.Builder.<GreedDrownedEntity>create(GreedDrownedEntity::new, SpawnGroup.MONSTER)

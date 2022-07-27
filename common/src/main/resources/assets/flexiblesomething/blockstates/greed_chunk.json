@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "flexiblesomething:block/greed_chunk"
+      },
+      {
+        "model": "flexiblesomething:block/greed_chunk",
+        "y": 90
+      },
+      {
+        "model": "flexiblesomething:block/greed_chunk",
+        "y": 180
+      },
+      {
+        "model": "flexiblesomething:block/greed_chunk",
+        "y": 270
+      }
+    ]
+  }
+}
