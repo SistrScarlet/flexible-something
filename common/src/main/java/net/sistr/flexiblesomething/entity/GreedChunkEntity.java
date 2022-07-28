@@ -23,6 +23,10 @@ public class GreedChunkEntity extends Entity {
         super(type, world);
     }
 
+    public GreedChunkEntity(World world) {
+        super(Registration.GREED_CHUNK_ENTITY.get(), world);
+    }
+
     @Override
     protected void initDataTracker() {
 
