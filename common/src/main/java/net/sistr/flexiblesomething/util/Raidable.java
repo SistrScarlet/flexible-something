@@ -6,4 +6,5 @@ public interface Raidable {
     void addRaidEntity(Entity entity);
     void removeRaidEntity(Entity entity);
     boolean isRaiding();
+    int getRaidKills();
 }

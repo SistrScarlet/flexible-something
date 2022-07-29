@@ -9,5 +9,9 @@ public class GreedWitchEntity extends WitchEntity implements GreedEntity {
         super(entityType, world);
     }
 
-
+    @Override
+    protected void initGoals() {
+        super.initGoals();
+        GreedEntity.overrideTargetGoal(this, this.targetSelector);
+    }
 }
