@@ -8,4 +8,10 @@ public class GreedDrownedEntity extends DrownedEntity implements GreedEntity {
     public GreedDrownedEntity(EntityType<? extends DrownedEntity> entityType, World world) {
         super(entityType, world);
     }
+
+    @Override
+    protected void initGoals() {
+        super.initGoals();
+        GreedEntity.overrideTargetGoal(this, this.targetSelector);
+    }
 }

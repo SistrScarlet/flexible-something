@@ -12,4 +12,10 @@ public class GreedZombieEntity extends ZombieEntity implements GreedEntity {
     public GreedZombieEntity(World world) {
         super(world);
     }
+
+    @Override
+    protected void initGoals() {
+        super.initGoals();
+        GreedEntity.overrideTargetGoal(this, this.targetSelector);
+    }
 }

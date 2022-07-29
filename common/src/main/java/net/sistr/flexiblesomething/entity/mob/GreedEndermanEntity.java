@@ -8,4 +8,10 @@ public class GreedEndermanEntity extends EndermanEntity implements GreedEntity {
     public GreedEndermanEntity(EntityType<? extends EndermanEntity> entityType, World world) {
         super(entityType, world);
     }
+
+    @Override
+    protected void initGoals() {
+        super.initGoals();
+        GreedEntity.overrideTargetGoal(this, this.targetSelector);
+    }
 }

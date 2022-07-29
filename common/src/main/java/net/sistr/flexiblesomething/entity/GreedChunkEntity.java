@@ -23,7 +23,6 @@ import java.util.List;
 public class GreedChunkEntity extends Entity {
     private static final List<EntityType<?>> GREED_MONSTERS =
             ImmutableList.of(
-                    Registration.G_ENDERMAN.get(),
                     Registration.G_PHANTOM.get(),
                     Registration.G_SKELETON.get(),
                     Registration.G_SPIDER.get(),
