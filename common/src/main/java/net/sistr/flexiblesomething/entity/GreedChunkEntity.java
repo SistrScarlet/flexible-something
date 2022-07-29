@@ -1,23 +1,38 @@
 package net.sistr.flexiblesomething.entity;
 
+import com.google.common.collect.ImmutableList;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.Packet;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.setup.Registration;
+import net.sistr.flexiblesomething.util.Raidable;
+
+import java.util.List;
 
 //零れ落ち、溜まる
 //変形し、スポーンする
 public class GreedChunkEntity extends Entity {
+    private static final List<EntityType<?>> GREED_MONSTERS =
+            ImmutableList.of(
+                    Registration.G_ENDERMAN.get(),
+                    Registration.G_PHANTOM.get(),
+                    Registration.G_SKELETON.get(),
+                    Registration.G_SPIDER.get(),
+                    Registration.G_ZOMBIE.get()
+            );
     private final BlockState state = Registration.GREED_CHUNK_BLOCK.get().getDefaultState();
     private float spread;
     private float prevSpread;
+    private PlayerEntity targetPlayer;
 
     public GreedChunkEntity(EntityType<? extends GreedChunkEntity> type, World world) {
         super(type, world);
@@ -43,7 +58,19 @@ public class GreedChunkEntity extends Entity {
     }
 
     @Override
+    public boolean shouldRender(double distance) {
+        double d = this.getBoundingBox().getAverageSideLength() * 10.0;
+        if (Double.isNaN(d)) {
+            d = 1.0;
+        }
+        return distance < (d *= 64.0 * PersistentProjectileEntity.getRenderDistanceMultiplier()) * d;
+    }
+
+    @Override
     public void tick() {
+        if (!this.world.isClient && this.targetPlayer == null) {
+            discard();
+        }
         super.tick();
 
         this.setVelocity(this.getVelocity().multiply(0.98));
@@ -52,15 +79,36 @@ public class GreedChunkEntity extends Entity {
 
         if (!this.hasNoGravity()) {
             var vec = getVelocity();
-            this.setVelocity(vec.x, vec.y - 0.02, vec.z + 0);
+            this.setVelocity(vec.x, vec.y - 0.2, vec.z + 0);
         }
 
         prevSpread = spread;
         if (this.onGround) {
             this.spread = Math.min(this.spread + 0.2f, 0.95f);
+            if (!this.world.isClient && this.spread == 0.95f && 200 < this.age) {
+                this.discard();
+                var greedMonster = GREED_MONSTERS
+                        .get(this.random.nextInt(GREED_MONSTERS.size()))
+                        .create(this.world);
+                if (greedMonster != null) {
+                    greedMonster.setPosition(this.getX(), this.getY(), this.getZ());
+                    this.world.spawnEntity(greedMonster);
+                    var raidable = (Raidable) this.targetPlayer;
+                    raidable.addRaidEntity(greedMonster);
+                }
+            }
         } else {
             this.spread = Math.min(this.spread - 0.05f, -0.95f);
         }
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        if (this.targetPlayer != null) {
+            Raidable raidable = (Raidable) this.targetPlayer;
+            raidable.removeRaidEntity(this);
+        }
+        super.remove(reason);
     }
 
     @Override
@@ -87,5 +135,13 @@ public class GreedChunkEntity extends Entity {
     @Override
     public Packet<?> createSpawnPacket() {
         return NetworkManager.createAddEntityPacket(this);
+    }
+
+    public PlayerEntity getTargetPlayer() {
+        return targetPlayer;
+    }
+
+    public void setTargetPlayer(PlayerEntity targetPlayer) {
+        this.targetPlayer = targetPlayer;
     }
 }
