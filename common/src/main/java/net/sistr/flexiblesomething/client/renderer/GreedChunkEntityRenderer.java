@@ -39,10 +39,9 @@ public class GreedChunkEntityRenderer extends EntityRenderer<GreedChunkEntity> {
             return;
         }
         matrices.push();
-        matrices.scale(
-                0.5f + entity.getSpread(tickDelta) * 0.5f,
-                0.5f - entity.getSpread(tickDelta) * 0.5f,
-                0.5f + entity.getSpread(tickDelta) * 0.5f);
+        float width = 0.5f + entity.getSpread(tickDelta) * 0.5f;
+        float height = 0.125f / (width * width);
+        matrices.scale(width, height, width);
         matrices.translate(-0.5, 0, -0.5);
         BlockPos blockPos = new BlockPos(entity.getX(), entity.getBoundingBox().maxY, entity.getZ());
         BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();

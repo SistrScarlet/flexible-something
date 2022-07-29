@@ -6,10 +6,15 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MovementType;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.Packet;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -29,7 +34,7 @@ public class GreedChunkEntity extends Entity {
                     Registration.G_ZOMBIE.get()
             );
     private final BlockState state = Registration.GREED_CHUNK_BLOCK.get().getDefaultState();
-    private float spread;
+    private static final TrackedData<Float> SPREAD = DataTracker.registerData(GreedChunkEntity.class, TrackedDataHandlerRegistry.FLOAT);
     private float prevSpread;
     private PlayerEntity targetPlayer;
 
@@ -43,7 +48,7 @@ public class GreedChunkEntity extends Entity {
 
     @Override
     protected void initDataTracker() {
-
+        this.dataTracker.startTracking(SPREAD, 0f);
     }
 
     @Override
@@ -72,55 +77,61 @@ public class GreedChunkEntity extends Entity {
         }
         super.tick();
 
-        this.setVelocity(this.getVelocity().multiply(0.98));
+        float drug = 0.98f;
+        if (this.onGround) {
+            drug = 0.5f;
+        }
+        this.setVelocity(this.getVelocity().multiply(drug));
 
         this.move(MovementType.SELF, this.getVelocity());
 
         if (!this.hasNoGravity()) {
             var vec = getVelocity();
-            this.setVelocity(vec.x, vec.y - 0.2, vec.z + 0);
+            this.setVelocity(vec.x, vec.y - 0.05, vec.z + 0);
         }
 
-        prevSpread = spread;
-        if (this.onGround) {
-            this.spread = Math.min(this.spread + 0.2f, 0.95f);
-            if (!this.world.isClient && this.spread == 0.95f && 200 < this.age) {
-                this.discard();
-                var greedMonster = GREED_MONSTERS
-                        .get(this.random.nextInt(GREED_MONSTERS.size()))
-                        .create(this.world);
-                if (greedMonster != null) {
-                    greedMonster.setPosition(this.getX(), this.getY(), this.getZ());
-                    this.world.spawnEntity(greedMonster);
-                    var raidable = (Raidable) this.targetPlayer;
-                    raidable.addRaidEntity(greedMonster);
+        if (!this.world.isClient) {
+            this.world.getEntitiesByClass(GreedChunkEntity.class, calculateBoundingBox(), p -> true)
+                    .forEach(this::pushAwayFrom);
+        }
+
+        float spread = getSpread();
+        this.prevSpread = spread;
+        if (!this.world.isClient) {
+            spread *= 0.9f;
+            if (this.onGround) {
+                spread = Math.min(spread + 0.2f, 0.95f);
+                if (spread == 0.95f && 200 < this.age) {
+                    this.discard();
+                    var greedMonster = GREED_MONSTERS
+                            .get(this.random.nextInt(GREED_MONSTERS.size()))
+                            .create(this.world);
+                    if (greedMonster != null) {
+                        greedMonster.setPosition(this.getX(), this.getY(), this.getZ());
+                        this.world.spawnEntity(greedMonster);
+                        var raidable = (Raidable) this.targetPlayer;
+                        raidable.addRaidEntity(greedMonster);
+                        this.world.playSound(null, this.getX(), this.getY(), this.getZ(),
+                                SoundEvents.ENTITY_ZOMBIE_CONVERTED_TO_DROWNED, SoundCategory.HOSTILE,
+                                1f, 0f);
+                    }
                 }
+            } else {
+                spread = Math.max(spread * 0.9f - 0.2f, -0.28f);
             }
-        } else {
-            this.spread = Math.min(this.spread - 0.05f, -0.95f);
+            if (this.prevSpread != spread) {
+                setSpread(spread);
+            }
         }
-    }
-
-    @Override
-    public void remove(RemovalReason reason) {
-        if (this.targetPlayer != null) {
-            Raidable raidable = (Raidable) this.targetPlayer;
-            raidable.removeRaidEntity(this);
-        }
-        super.remove(reason);
     }
 
     @Override
     protected Box calculateBoundingBox() {
-        float spread = this.getSpread(1);
-        return new Box(
-                -0.25f - spread * 0.25f,
-                0,
-                -0.25f - spread * 0.25f,
-                0.25f + spread * 0.25f,
-                0.5f - spread * 0.5f,
-                0.25f + spread * 0.25f
-        ).offset(this.getPos());
+        float width = 0.5f + getSpread() * 0.5f;
+        float height = 0.125f / (width * width);
+        return new Box(-width / 2, 0, -width / 2,
+                width / 2, height, width / 2)
+                .offset(this.getPos());
     }
 
     public BlockState getBlockState() {
@@ -128,7 +139,15 @@ public class GreedChunkEntity extends Entity {
     }
 
     public float getSpread(float delta) {
-        return MathHelper.lerp(delta, prevSpread, spread);
+        return MathHelper.lerp(delta, prevSpread, getSpread());
+    }
+
+    public float getSpread() {
+        return this.dataTracker.get(SPREAD);
+    }
+
+    public void setSpread(float spread) {
+        this.dataTracker.set(SPREAD, spread);
     }
 
     @Override
