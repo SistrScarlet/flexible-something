@@ -40,7 +40,6 @@ public class GunItem extends Item implements Shootable {
             .build();
     private final BulletEntity.Effect foodEffect = (user, bullet, target) -> {
         if (!user.world.isClient && user instanceof PlayerEntity) {
-            user.heal(2);
             var hungerManager = ((PlayerEntity) user).getHungerManager();
             hungerManager.add(hungerManager.getFoodLevel()+1, 0.0f);
         }
