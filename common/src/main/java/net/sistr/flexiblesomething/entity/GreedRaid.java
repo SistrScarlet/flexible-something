@@ -47,7 +47,7 @@ public class GreedRaid implements Raidable {
         if (isRaidedByGreed) {
             raidEntities.removeIf(Entity::isRemoved);
             bossBar.setPercent(MathHelper.clamp(1 - raidKills / 300f, 0, 1));
-            if (player.age % 10 == 0
+            if (player.age % 2 == 0
                     && this.raidEntities.size() < 100) {
                 var rand = world.getRandom();
                 int x = (int) (player.getX() + (rand.nextFloat() * 2 - 1) * 64);
