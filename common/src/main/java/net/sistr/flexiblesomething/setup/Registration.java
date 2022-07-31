@@ -18,6 +18,7 @@ import net.sistr.flexiblesomething.block.GreedChunkBlock;
 import net.sistr.flexiblesomething.entity.GreedChunkEntity;
 import net.sistr.flexiblesomething.entity.mob.*;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
+import net.sistr.flexiblesomething.item.PrimalSpearItem;
 import net.sistr.flexiblesomething.item.gun.GunItem;
 
 public class Registration {
@@ -47,6 +48,9 @@ public class Registration {
             new GunItem(new Item.Settings(),
                     new GunItem.BasicGunSettings(1.0f, 6.0f, 4.0f, 4.0f, 1),
                     new GunItem.ReloadSettings(70, 40, 0)));
+
+    public static final RegistrySupplier<PrimalSpearItem> PRIMAL_SPEAR_ITEM = ITEMS.register("primal_spear", () ->
+            new PrimalSpearItem());
 
     public static final RegistrySupplier<EntityType<BulletEntity>> BASIC_BULLET = ENTITIES.register("basic_bullet", () ->
             EntityType.Builder.<BulletEntity>create(BulletEntity::new, SpawnGroup.MISC)
