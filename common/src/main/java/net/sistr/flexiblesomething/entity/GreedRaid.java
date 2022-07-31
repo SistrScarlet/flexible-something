@@ -16,42 +16,60 @@ import java.util.List;
 
 public class GreedRaid implements Raidable {
     private final List<Entity> raidEntities = Lists.newArrayList();
-    private boolean isRaidedByGreed;
-    private int raidKills;
     private final ServerBossBar bossBar = (ServerBossBar) new ServerBossBar(Text.of("?????"),
-            BossBar.Color.BLUE, BossBar.Style.NOTCHED_20).setDarkenSky(true);
+            BossBar.Color.BLUE, BossBar.Style.NOTCHED_6).setDarkenSky(true);
     private final World world;
     private final PlayerEntity player;
+    private boolean isRaidedByGreed;
+    private int maxRaidKills = 200;
+    private int raidSize = 100;
+    private float raidScale = 0.1f;
+    private int raidKills;
 
     public GreedRaid(World world, PlayerEntity player) {
         this.world = world;
         this.player = player;
     }
 
+    private void start() {
+        this.isRaidedByGreed = true;
+        bossBar.addPlayer((ServerPlayerEntity) player);
+        bossBar.setVisible(true);
+        this.world.setRainGradient(1f);
+    }
+
+    private void end() {
+        this.isRaidedByGreed = false;
+        bossBar.setVisible(false);
+        bossBar.clearPlayers();
+        bossBar.setPercent(0);
+        raidKills = 0;
+        calcRaidScale();
+        raidEntities.forEach(Entity::discard);
+        raidEntities.clear();
+    }
+
     public void tick() {
-        if (!this.isRaidedByGreed && player.getOffHandStack().getItem() == Items.CLOCK) {
-            this.isRaidedByGreed = true;
-            bossBar.addPlayer((ServerPlayerEntity) player);
-            bossBar.setVisible(true);
-            this.world.setRainGradient(1f);
+        if (player.getOffHandStack().getItem() == Items.BLAZE_ROD) {
+            this.raidSize = 400;
+            this.maxRaidKills = 200;
+        } else if (player.getOffHandStack().getItem() == Items.SNOWBALL) {
+            this.raidSize = 200;
+            this.maxRaidKills = 100;
+        } else if (!this.isRaidedByGreed && player.getOffHandStack().getItem() == Items.CLOCK) {
+            start();
         } else if (this.isRaidedByGreed && player.getOffHandStack().getItem() == Items.BOOK) {
-            this.isRaidedByGreed = false;
-            bossBar.setVisible(false);
-            bossBar.clearPlayers();
-            bossBar.setPercent(0);
-            raidKills = 0;
-            raidEntities.forEach(Entity::discard);
-            raidEntities.clear();
-            this.world.setRainGradient(0f);
+            end();
         }
         if (isRaidedByGreed) {
             raidEntities.removeIf(Entity::isRemoved);
-            bossBar.setPercent(MathHelper.clamp(1 - raidKills / 300f, 0, 1));
+            bossBar.setPercent(MathHelper.clamp(1 - (float) raidKills / maxRaidKills, 0, 1));
+
             if (player.age % 2 == 0
-                    && this.raidEntities.size() < 100) {
+                    && this.raidEntities.size() < raidSize * raidScale) {
                 var rand = world.getRandom();
                 int x = (int) (player.getX() + (rand.nextFloat() * 2 - 1) * 64);
-                int y = this.world.getHeight();
+                int y = (int) (this.player.getY() + 128);
                 int z = (int) (player.getZ() + (rand.nextFloat() * 2 - 1) * 64);
                 var greedChunk = new GreedChunkEntity(this.world);
                 greedChunk.setTargetPlayer(player);
@@ -76,6 +94,16 @@ public class GreedRaid implements Raidable {
         if (raidEntities.contains(entity)) {
             raidKills++;
             raidEntities.remove(entity);
+            calcRaidScale();
+        }
+    }
+
+    private void calcRaidScale() {
+        int index = MathHelper.floor(raidKills / (maxRaidKills / 6.0f));
+        switch (index) {
+            case 0, 1, 2 -> raidScale = 0.25f;
+            case 3, 4 -> raidScale = 0.5f;
+            default -> raidScale = 1.0f;
         }
     }
 
