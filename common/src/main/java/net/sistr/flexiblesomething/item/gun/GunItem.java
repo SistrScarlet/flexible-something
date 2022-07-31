@@ -71,6 +71,7 @@ public class GunItem extends Item implements Shootable {
         }
     };
     private final List<BulletEntity.Effect> hitEffects = List.of(foodEffect, boomEffect);
+    private final List<BulletEntity.Effect> killEffects = List.of(healEffect);
 
     public GunItem(Settings settings, BasicGunSettings basicGunSettings, @Nullable ReloadSettings reloadSettings) {
         super(settings);
@@ -304,6 +305,7 @@ public class GunItem extends Item implements Shootable {
         var bullet = new BulletEntity(shooter, world);
         bullet.setDamage(this.basicGunSettings.damage);
         this.hitEffects.forEach(bullet::addHitEffect);
+        this.killEffects.forEach(bullet::addKillEffect);
         return bullet;
     }
 

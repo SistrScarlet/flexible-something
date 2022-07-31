@@ -204,10 +204,13 @@ public class BulletEntity extends ProjectileEntity {
 
             boolean shouldPlayHitSound = true;
 
-            if (target instanceof LivingEntity && ((LivingEntity) target).getHealth() <= 0) {
+            if (target instanceof LivingEntity livingTarget && livingTarget.getHealth() <= 0) {
                 if (targetHealth == 0) {
                     shouldPlayHitSound = false;
                 } else {
+                    if (owner instanceof LivingEntity livingOwner) {
+                        this.killEffects.forEach(e -> e.event(livingOwner, this, livingTarget));
+                    }
                     hitSound = SoundData.of(SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f);
                 }
             }
