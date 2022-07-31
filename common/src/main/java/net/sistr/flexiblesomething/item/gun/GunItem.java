@@ -74,6 +74,8 @@ public class GunItem extends Item implements Shootable {
             if (reloadTime <= 0) {
                 setReloadTime(reloadSettings, gunState, reloadSettings.length());
                 playReloadSound(world, user, 0);
+                //shootInputが残ったままだと、射撃が優先されてリロードがキャンセルされる
+                setShootInput(gunState, 0);
             }
         }
     }
