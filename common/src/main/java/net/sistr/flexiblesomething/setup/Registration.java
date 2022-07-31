@@ -49,6 +49,7 @@ public class Registration {
                     .setDimensions(0.5f, 0.5f)
                     .maxTrackingRange(4)
                     .trackingTickInterval(1)
+                    .disableSaving()
                     .build("basic_bullet"));
 
     public static final RegistrySupplier<EntityType<BotEntity>> BOT_ENTITY = ENTITIES.register("bot", () ->
