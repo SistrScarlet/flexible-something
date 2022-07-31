@@ -16,22 +16,31 @@ import net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.setup.Registration;
+import net.sistr.flexiblesomething.util.SoundData;
+import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class BulletEntity extends ProjectileEntity {
     private int decay = 100;
     private float damage = 4;
+    private final List<Effect> hitEffects = Lists.newArrayList();
+    private final List<Effect> killEffects = Lists.newArrayList();
 
     public BulletEntity(EntityType<? extends BulletEntity> entityType, World world) {
         super(entityType, world);
@@ -160,37 +169,68 @@ public class BulletEntity extends ProjectileEntity {
 
     @Override
     protected void onEntityHit(EntityHitResult entityHitResult) {
+        float damage = this.damage;
         DamageSource damageSource;
-        Entity entity2;
+        Entity owner;
         super.onEntityHit(entityHitResult);
-        Entity entity = entityHitResult.getEntity();
-        if ((entity2 = this.getOwner()) == null) {
+        Entity target = entityHitResult.getEntity();
+        SoundData hitSound = SoundData.of(SoundEvents.ENTITY_GENERIC_HURT, 2.0f, 0.5f);
+        if (target instanceof LivingEntity && isHeadShot(entityHitResult, (LivingEntity) target)) {
+            damage *= 1.5f;
+            hitSound = SoundData.of(SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 2.0f, 0.5f);
+        }
+        if ((owner = this.getOwner()) == null) {
             damageSource = bullet(this, this);
         } else {
-            damageSource = bullet(this, entity2);
-            if (entity2 instanceof LivingEntity) {
-                ((LivingEntity) entity2).onAttacking(entity);
+            damageSource = bullet(this, owner);
+            if (owner instanceof LivingEntity) {
+                ((LivingEntity) owner).onAttacking(target);
             }
         }
-        boolean bl = entity.getType() == EntityType.ENDERMAN;
-        int j = entity.getFireTicks();
+        boolean bl = target.getType() == EntityType.ENDERMAN;
+        int j = target.getFireTicks();
         if (this.isOnFire() && !bl) {
-            entity.setOnFireFor(5);
+            target.setOnFireFor(5);
         }
-        entity.timeUntilRegen = 0;
-        if (entity.damage(damageSource, this.damage)) {
+        target.timeUntilRegen = 0;
+        float targetHealth = 0;
+        if (target instanceof LivingEntity) {
+            targetHealth = ((LivingEntity) target).getHealth();
+        }
+        if (target.damage(damageSource, damage)) {
             if (bl) {
                 return;
             }
-            if (entity instanceof LivingEntity) {
-                LivingEntity livingEntity = (LivingEntity) entity;
-                if (!this.world.isClient && entity2 instanceof LivingEntity) {
-                    EnchantmentHelper.onUserDamaged(livingEntity, entity2);
-                    EnchantmentHelper.onTargetDamaged((LivingEntity) entity2, livingEntity);
+
+            boolean shouldPlayHitSound = true;
+
+            if (target instanceof LivingEntity && ((LivingEntity) target).getHealth() <= 0) {
+                if (targetHealth == 0) {
+                    shouldPlayHitSound = false;
+                } else {
+                    hitSound = SoundData.of(SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.5f);
                 }
-                this.onHit(livingEntity);
-                if (entity2 != null && livingEntity != entity2 && livingEntity instanceof PlayerEntity && entity2 instanceof ServerPlayerEntity && !this.isSilent()) {
-                    ((ServerPlayerEntity) entity2).networkHandler.sendPacket(new GameStateChangeS2CPacket(GameStateChangeS2CPacket.PROJECTILE_HIT_PLAYER, GameStateChangeS2CPacket.DEMO_OPEN_SCREEN));
+            }
+
+            if (shouldPlayHitSound && !this.world.isClient) {
+                if (owner instanceof ServerPlayerEntity player) {
+                    SoundData.playSoundIdToPlayer(player, player.getX(), player.getY(), player.getZ(), hitSound, SoundCategory.PLAYERS);
+                    SoundData.playSoundId(player, (ServerWorld) world, target.getX(), target.getY(), target.getZ(),
+                            hitSound, SoundCategory.PLAYERS);
+                } else {
+                    SoundData.playSoundId(null, (ServerWorld) world, target.getX(), target.getY(), target.getZ(),
+                            hitSound, SoundCategory.PLAYERS);
+                }
+            }
+
+            if (target instanceof LivingEntity livingTarget) {
+                if (!this.world.isClient && owner instanceof LivingEntity) {
+                    EnchantmentHelper.onUserDamaged(livingTarget, owner);
+                    EnchantmentHelper.onTargetDamaged((LivingEntity) owner, livingTarget);
+                }
+                this.onHit(livingTarget);
+                if (owner != null && livingTarget != owner && livingTarget instanceof PlayerEntity && owner instanceof ServerPlayerEntity && !this.isSilent()) {
+                    ((ServerPlayerEntity) owner).networkHandler.sendPacket(new GameStateChangeS2CPacket(GameStateChangeS2CPacket.PROJECTILE_HIT_PLAYER, GameStateChangeS2CPacket.DEMO_OPEN_SCREEN));
                 }
             }
             this.playSound(this.getHitSound(), 1.0f, 1.2f / (this.random.nextFloat() * 0.2f + 0.9f));
@@ -198,7 +238,7 @@ public class BulletEntity extends ProjectileEntity {
             this.discard();
             //}
         } else {
-            entity.setFireTicks(j);
+            target.setFireTicks(j);
             this.setVelocity(this.getVelocity().multiply(-0.1));
             this.setYaw(this.getYaw() + 180.0f);
             this.prevYaw += 180.0f;
@@ -208,8 +248,20 @@ public class BulletEntity extends ProjectileEntity {
         }
     }
 
-    private void onHit(LivingEntity livingEntity) {
+    private boolean isHeadShot(EntityHitResult e, LivingEntity target) {
+        var eye = target.getEyePos();
+        var size = Math.min(target.getHeight(), target.getWidth()) / 2f;
+        var box = new Box(eye.x - size, eye.y - size, eye.z - size,
+                eye.x + size, eye.y + size, eye.z + size);
+        var pos = this.getPos();
+        return box.raycast(pos, pos.add(getVelocity())).isPresent();
+    }
 
+    private void onHit(LivingEntity livingEntity) {
+        var owner = this.getOwner();
+        if (owner instanceof LivingEntity lOwner) {
+            this.hitEffects.forEach(e -> e.event(lOwner, this, livingEntity));
+        }
     }
 
     @Override
@@ -276,5 +328,17 @@ public class BulletEntity extends ProjectileEntity {
     @Override
     public Packet<?> createSpawnPacket() {
         return NetworkManager.createAddEntityPacket(this);
+    }
+
+    public void addHitEffect(Effect hitEffect) {
+        this.hitEffects.add(hitEffect);
+    }
+
+    public void addKillEffect(Effect killEffect) {
+        this.killEffects.add(killEffect);
+    }
+
+    public interface Effect {
+        void event(LivingEntity user, BulletEntity bullet, LivingEntity target);
     }
 }

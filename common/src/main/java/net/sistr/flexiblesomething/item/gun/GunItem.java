@@ -2,18 +2,19 @@ package net.sistr.flexiblesomething.item.gun;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket;
+import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.entity.HasInput;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
@@ -23,6 +24,7 @@ import net.sistr.flexiblesomething.util.SoundData;
 import net.sistr.flexiblesomething.util.SoundHolder;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 //機能を細かく分ける試みは、あまりにも複雑すぎて無理となった
 public class GunItem extends Item implements Shootable {
@@ -38,6 +40,31 @@ public class GunItem extends Item implements Shootable {
             .addSound(38, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
             .addSound(40, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
             .build();
+    private final BulletEntity.Effect healEffect = (user, bullet, target) -> {
+        if (!user.world.isClient) {
+            user.heal(2);
+            ((ServerWorld) user.world).spawnParticles(ParticleTypes.HAPPY_VILLAGER,
+                    user.getParticleX(1), user.getEyeY(), user.getParticleZ(1),
+                    1, 0, 0, 0, 0);
+            SoundData.playSoundId(null, ((ServerWorld) user.world),
+                    user.getX(), user.getY(), user.getZ(),
+                    SoundData.of(SoundEvents.ENTITY_ARROW_HIT_PLAYER, 2.0f, 1.0f), SoundCategory.PLAYERS);
+        }
+    };
+    private final BulletEntity.Effect boomEffect = (user, bullet, target) -> {
+        if (!user.world.isClient && user.getRandom().nextFloat() < 0.5f) {
+            target.damage(DamageSource.mob(user), 6f);
+            float size = 0.5f;
+            ((ServerWorld) user.world).spawnParticles(ParticleTypes.FLAME,
+                    target.getX(), target.getY() + target.getHeight() / 2f, target.getZ(),
+                    10, size, size, size, 0.125f);
+            SoundData.playSoundId(null, ((ServerWorld) user.world),
+                    user.getX(), user.getY(), user.getZ(),
+                    SoundData.of(SoundEvents.ITEM_FIRECHARGE_USE, 2.0f, 1.0f),
+                    SoundCategory.PLAYERS);
+        }
+    };
+    private final List<BulletEntity.Effect> hitEffects = List.of(healEffect, boomEffect);
 
     public GunItem(Settings settings, BasicGunSettings basicGunSettings, @Nullable ReloadSettings reloadSettings) {
         super(settings);
@@ -259,36 +286,31 @@ public class GunItem extends Item implements Shootable {
         }
     }
 
-    public void shoot(World world, Entity shooter) {
-        var bullet = new BulletEntity(shooter, world);
-        bullet.setDamage(this.basicGunSettings.damage);
+    public void shoot(World world, LivingEntity shooter) {
+        var bullet = createBullet(world, shooter);
         bullet.setVelocity(shooter, shooter.getPitch(), shooter.getYaw(), 0.0f,
                 basicGunSettings.velocity, basicGunSettings.inAccuracy);
         world.spawnEntity(bullet);
         playGunSound(world, shooter);
     }
 
-    public void playGunSound(World world, Entity shooter) {
+    protected BulletEntity createBullet(World world, LivingEntity shooter) {
+        var bullet = new BulletEntity(shooter, world);
+        bullet.setDamage(this.basicGunSettings.damage);
+        this.hitEffects.forEach(bullet::addHitEffect);
+        return bullet;
+    }
+
+    public void playGunSound(World world, LivingEntity shooter) {
         world.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(),
                 SoundEvents.BLOCK_LEVER_CLICK, SoundCategory.PLAYERS, 2f, 2f);
     }
 
-    public void playReloadSound(World world, Entity shooter, int time) {
+    public void playReloadSound(World world, LivingEntity shooter, int time) {
         var sounds = soundHolder.getSound(time);
         sounds.forEach(sound ->
-                playSoundId((ServerWorld) world, shooter.getX(), shooter.getY(), shooter.getZ(),
-                        sound.getId(), SoundCategory.PLAYERS,
-                        sound.getPitch(), sound.getVolume()));
-    }
-
-    public static void playSoundId(ServerWorld world, double x, double y, double z,
-                                   Identifier soundId, SoundCategory soundCategory,
-                                   float pitch, float volume) {
-        world.getServer().getPlayerManager()
-                .sendToAround(null, x, y, z,
-                        volume > 1.0f ? 16.0f * volume : 16.0,
-                        world.getRegistryKey(),
-                        new PlaySoundIdS2CPacket(soundId, soundCategory, new Vec3d(x, y, z), volume, pitch));
+                SoundData.playSoundId(null, (ServerWorld) world, shooter.getX(), shooter.getY(), shooter.getZ(),
+                        sound, SoundCategory.PLAYERS));
     }
 
     public record BasicGunSettings(float fireInterval, float inAccuracy, float velocity, float damage,
