@@ -38,6 +38,13 @@ public class GunItem extends Item implements Shootable {
             .addSound(38, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
             .addSound(40, SoundData.of(SoundEvents.BLOCK_PISTON_CONTRACT, 2f, 1f))
             .build();
+    private final BulletEntity.Effect foodEffect = (user, bullet, target) -> {
+        if (!user.world.isClient && user instanceof PlayerEntity) {
+            user.heal(2);
+            var hungerManager = ((PlayerEntity) user).getHungerManager();
+            hungerManager.add(hungerManager.getFoodLevel()+1, 0.0f);
+        }
+    };
     private final BulletEntity.Effect healEffect = (user, bullet, target) -> {
         if (!user.world.isClient) {
             user.heal(2);
@@ -63,7 +70,7 @@ public class GunItem extends Item implements Shootable {
                     SoundCategory.PLAYERS);
         }
     };
-    private final List<BulletEntity.Effect> hitEffects = List.of(healEffect, boomEffect);
+    private final List<BulletEntity.Effect> hitEffects = List.of(foodEffect, boomEffect);
 
     public GunItem(Settings settings, BasicGunSettings basicGunSettings, @Nullable ReloadSettings reloadSettings) {
         super(settings);
