@@ -30,7 +30,6 @@ public class GreedChunkEntity extends Entity {
     private static final List<EntityType<? extends GreedEntity>> GREED_MONSTERS =
             ImmutableList.of(
                     Registration.G_PHANTOM.get(),
-                    Registration.G_SKELETON.get(),
                     Registration.G_SPIDER.get(),
                     Registration.G_ZOMBIE.get()
             );
