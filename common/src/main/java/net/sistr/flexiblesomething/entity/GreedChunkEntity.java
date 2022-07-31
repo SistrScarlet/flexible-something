@@ -18,6 +18,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.sistr.flexiblesomething.entity.mob.GreedEntity;
 import net.sistr.flexiblesomething.setup.Registration;
 import net.sistr.flexiblesomething.util.Raidable;
 
@@ -26,7 +27,7 @@ import java.util.List;
 //零れ落ち、溜まる
 //変形し、スポーンする
 public class GreedChunkEntity extends Entity {
-    private static final List<EntityType<?>> GREED_MONSTERS =
+    private static final List<EntityType<? extends GreedEntity>> GREED_MONSTERS =
             ImmutableList.of(
                     Registration.G_PHANTOM.get(),
                     Registration.G_SKELETON.get(),
@@ -108,6 +109,7 @@ public class GreedChunkEntity extends Entity {
                             .create(this.world);
                     if (greedMonster != null) {
                         greedMonster.setPosition(this.getX(), this.getY(), this.getZ());
+                        greedMonster.setGreedTarget(this.targetPlayer);
                         this.world.spawnEntity(greedMonster);
                         var raidable = (Raidable) this.targetPlayer;
                         raidable.addRaidEntity(greedMonster);
