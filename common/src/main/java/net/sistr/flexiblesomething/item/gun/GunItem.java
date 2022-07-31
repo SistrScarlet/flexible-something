@@ -7,14 +7,12 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
 import net.sistr.flexiblesomething.entity.HasInput;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
@@ -43,9 +41,10 @@ public class GunItem extends Item implements Shootable {
     private final BulletEntity.Effect healEffect = (user, bullet, target) -> {
         if (!user.world.isClient) {
             user.heal(2);
+            float size = 0.5f;
             ((ServerWorld) user.world).spawnParticles(ParticleTypes.HAPPY_VILLAGER,
-                    user.getParticleX(1), user.getEyeY(), user.getParticleZ(1),
-                    1, 0, 0, 0, 0);
+                    user.getX(), user.getY() + user.getHeight() / 2f, user.getZ(),
+                    1, size, size, size, 0.0125f);
             SoundData.playSoundId(null, ((ServerWorld) user.world),
                     user.getX(), user.getY(), user.getZ(),
                     SoundData.of(SoundEvents.ENTITY_ARROW_HIT_PLAYER, 2.0f, 1.0f), SoundCategory.PLAYERS);
