@@ -1,0 +1,9 @@
+{
+  "gun.cobalt_catsup_gun_sounds_for_reddit_std_pistol_one_shot": {
+    "category": "player",
+    "subtitle": "flexiblesomething.subtitle.cobalt_catsup_gun_sounds_for_reddit_std_pistol_one_shot",
+    "sounds": [
+      "flexiblesomething:gun/cobalt_catsup_gun_sounds_for_reddit_std_pistol_one_shot"
+    ]
+  }
+}

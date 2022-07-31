@@ -9,7 +9,9 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.DyeColor;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.sistr.flexiblesomething.FlexibleSomethingMod;
 import net.sistr.flexiblesomething.block.GreedChunkBlock;
@@ -22,11 +24,13 @@ public class Registration {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.BLOCK_KEY);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.ITEM_KEY);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.ENTITY_TYPE_KEY);
+    private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(FlexibleSomethingMod.MOD_ID, Registry.SOUND_EVENT_KEY);
 
     public static void init() {
         BLOCKS.register();
         ITEMS.register();
         ENTITIES.register();
+        SOUND_EVENTS.register();
     }
 
     public static final RegistrySupplier<GreedChunkBlock> GREED_CHUNK_BLOCK = BLOCKS.register("greed_chunk", () ->
@@ -90,4 +94,8 @@ public class Registration {
             EntityType.Builder.<GreedZombieEntity>create(GreedZombieEntity::new, SpawnGroup.MONSTER)
                     .setDimensions(0.6f, 1.95f).maxTrackingRange(8)
                     .build("greed_zombie"));
+
+    public static final RegistrySupplier<SoundEvent> COBALT_CATSUP_GUN_SOUNDS_FOR_REDDIT_STD_PISTOL_ONE_SHOT =
+            SOUND_EVENTS.register("gun.cobalt_catsup_gun_sounds_for_reddit_std_pistol_one_shot",
+                    () -> new SoundEvent(new Identifier(FlexibleSomethingMod.MOD_ID, "gun.cobalt_catsup_gun_sounds_for_reddit_std_pistol_one_shot")));
 }

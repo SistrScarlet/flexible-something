@@ -18,6 +18,7 @@ import net.sistr.flexiblesomething.entity.HasInput;
 import net.sistr.flexiblesomething.entity.projectile.BulletEntity;
 import net.sistr.flexiblesomething.item.FlexibleArguments;
 import net.sistr.flexiblesomething.item.Shootable;
+import net.sistr.flexiblesomething.setup.Registration;
 import net.sistr.flexiblesomething.util.SoundData;
 import net.sistr.flexiblesomething.util.SoundHolder;
 
@@ -308,7 +309,8 @@ public class GunItem extends Item implements Shootable {
 
     public void playGunSound(World world, LivingEntity shooter) {
         world.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(),
-                SoundEvents.BLOCK_LEVER_CLICK, SoundCategory.PLAYERS, 2f, 2f);
+                Registration.COBALT_CATSUP_GUN_SOUNDS_FOR_REDDIT_STD_PISTOL_ONE_SHOT.get(), SoundCategory.PLAYERS,
+                 2f, 0.8f + world.random.nextFloat() * 0.2f);
     }
 
     public void playReloadSound(World world, LivingEntity shooter, int time) {
